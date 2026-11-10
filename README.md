@@ -25,17 +25,17 @@ sha256 ของ model ไม่ตรง manifest หรือ labels ไม่
 |---|---|
 | types, `parseManifest`, `load()` (manifest + sha256 + labels) | ✅ มี test |
 | `scripts/package-release.mjs` (โฟลเดอร์ release + `manifest.json` + `SHA256SUMS`) | ✅ มี test |
-| `scripts/fetch-model.mjs` + `model.lock.json` | ✅ ตอนนี้ชี้ model COCO สำหรับ dev |
+| `scripts/fetch-model.mjs` + `model.lock.json` | ✅ ชี้ release `model-yolov8n-v3` (model จริง 110 คลาส) |
 | `createSession` / `detect` (`src/detect.ts`) | ⏳ งาน A |
 | release workflow ตอน push tag | ⏳ งาน C1 |
-| model จริง (sell-products v3, 110 คลาส) + fixture `sell-v3` | ⛔ งาน T2 รอ `best.pt` จาก Google Drive (T1) |
-| release แรก `v0.1.0` | ⛔ งาน T4 รอ A, C1 และ T2 |
+| model จริง (sell-products v3, 110 คลาส) + fixture `sell-v3` | ✅ T2 (2026-11-10): release `model-yolov8n-v3` · output `[1,114,8400]` · `test/fixtures/sell-v3/` 16 รูป (15 + crop) สร้างจาก onnx ไฟล์เดียวกัน |
+| release แรก `v0.1.0` | ⛔ งาน T4 รอ A และ C1 (T2 เสร็จแล้ว) |
 
 ## Dev
 
 ```bash
 npm ci
-npm run fetch-model     # models/ ตาม model.lock.json (ตอนนี้ COCO yolov8n, dev only)
+npm run fetch-model     # models/ ตาม model.lock.json (model-yolov8n-v3, 110 คลาส)
 npm test                # vitest
 npm run typecheck
 npm run build           # dist/shelf-agent.js

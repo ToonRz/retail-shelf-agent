@@ -1,0 +1,272 @@
+{
+ "conf": 0.25,
+ "iou": 0.7,
+ "imgsz": 640,
+ "model_sha256": "f970340c26c5e2354bf2c15593a5d3fe96e5cc65fd421a79cae0dd97099d420f",
+ "images": [
+  {
+   "image": "23EB2CED-211B-4A4B-950D-55EA5C6A729F_jpg.rf.118d558879077a6fd3bd4159e34bf90d.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": []
+  },
+  {
+   "image": "IMG_4024_JPG.rf.e9cfc45105ab8d25351b87123fe9ca4c.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 10,
+     "cls": "copp",
+     "conf": 0.9054,
+     "xyxy": [
+      1.03,
+      75.01,
+      630.59,
+      515.05
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_4270_JPG.rf.84bf2b180daa6d6c22c90033b1182bdd.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 58,
+     "cls": "milo-chocobar",
+     "conf": 0.9639,
+     "xyxy": [
+      0.0,
+      285.71,
+      640.0,
+      478.75
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_4452_JPG.rf.f4055b169a94d3bb1efe4c08a6c5e32f.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 43,
+     "cls": "lays-chili-squid",
+     "conf": 0.9801,
+     "xyxy": [
+      0.48,
+      3.93,
+      568.16,
+      581.52
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_4691_JPG.rf.4f3e1437d3f82bc99392ac01c6f2ef9a.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 21,
+     "cls": "ha-na-mi-chile",
+     "conf": 0.8997,
+     "xyxy": [
+      0.55,
+      70.24,
+      639.9,
+      609.85
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_4877_JPG.rf.8fe465d44086164a75d613b644638dfc.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 25,
+     "cls": "jele-beautie-collagen-vitamin-c",
+     "conf": 0.9922,
+     "xyxy": [
+      41.78,
+      93.74,
+      519.12,
+      627.95
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_5053_JPG.rf.f4e603aac8815f1e548ef8b636d8b207.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 78,
+     "cls": "quick-tom-klong",
+     "conf": 0.9868,
+     "xyxy": [
+      141.82,
+      242.72,
+      457.87,
+      550.88
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_5190_JPG.rf.4527f5c54b1d7276c4fddde4490d10d2.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 31,
+     "cls": "jele-light-mixed-fruit",
+     "conf": 0.9827,
+     "xyxy": [
+      169.82,
+      187.72,
+      562.15,
+      546.82
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_5531_JPG.rf.50950edd3b34fe62b46e61b19c91d768.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 74,
+     "cls": "pr-bigbang",
+     "conf": 0.9943,
+     "xyxy": [
+      0.68,
+      0.9,
+      639.99,
+      640.0
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_5719_JPG.rf.c9c45905728de0ee366fd8eb1accbb9e.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 69,
+     "cls": "orange-sirichin",
+     "conf": 0.9814,
+     "xyxy": [
+      267.3,
+      83.78,
+      438.77,
+      441.92
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_5895_JPG.rf.0774158c96bfb7f9e10ee8acd93a9148.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 105,
+     "cls": "yen-yen",
+     "conf": 0.9645,
+     "xyxy": [
+      248.88,
+      151.72,
+      440.95,
+      590.39
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_6073_JPG.rf.ff1ec060df09ae69d4a160befb51718e.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 66,
+     "cls": "oishi-japanese-rice",
+     "conf": 0.9909,
+     "xyxy": [
+      216.73,
+      2.05,
+      503.82,
+      625.49
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_6237_JPG.rf.9504178f3902d975283f7abcefa94e83.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 86,
+     "cls": "sing-water",
+     "conf": 0.9868,
+     "xyxy": [
+      186.14,
+      0.28,
+      479.78,
+      640.0
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_6654_JPG.rf.3bc748854e2648ec0400ce0d00b20517.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 73,
+     "cls": "pocky",
+     "conf": 0.9917,
+     "xyxy": [
+      217.98,
+      190.21,
+      435.59,
+      466.77
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_7107_JPG.rf.04a4345813cef34c3d9e77aea29cc728.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 102,
+     "cls": "toro",
+     "conf": 0.9634,
+     "xyxy": [
+      180.21,
+      267.67,
+      464.93,
+      536.77
+     ]
+    }
+   ]
+  },
+  {
+   "image": "crop_23EB2CED-211B-4A4B-950D-55EA5C6A729F_jpg.rf.118d558879077a6fd3bd4159e34bf90d.jpg",
+   "width": 480,
+   "height": 640,
+   "boxes": []
+  }
+ ]
+}
