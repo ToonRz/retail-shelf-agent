@@ -1,0 +1,9 @@
+{
+  "note": "DEV: COCO yolov8n (80 classes). Task T2 switches this to the trained 110-class model.",
+  "source": "https://github.com/ToonRz/retail-shelf-agent/releases/download/dev-coco-model/",
+  "files": {
+    "model.onnx": "4277b68819189b7bec3ca19b03c557691abdf5196b0ab9f85c3957c91e145af6",
+    "labels.json": "b9ca6fe72ccab375910ac6369f283c76332c3e310b55f18ab2f9254abe375f21",
+    "model.json": "753912db960af1f542666b630be84e3734d6fdf58ac5ffd7b3c2634076d0ca70"
+  }
+}

@@ -1,0 +1,78 @@
+#!/usr/bin/env node
+// Assemble one release folder: the exact set of files a GitHub Release carries.
+//
+//   node scripts/package-release.mjs --version v0.1.0 [--model-dir models] [--dist dist]
+//        [--ort node_modules/onnxruntime-web/dist] [--out release]
+//
+// models/ must hold what retail-shelf-detection's src/export_agent_assets.py wrote:
+// model.onnx, labels.json, model.json. The output folder is flat (GitHub release assets
+// have no directories) and ends with manifest.json and SHA256SUMS (sha256sum -c format).
+import { createHash } from "node:crypto";
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { parseArgs } from "node:util";
+
+export const CONTRACT = "shelf-agent-js/1";
+export const DEFAULTS = { conf: 0.25, iou: 0.7, max_det: 300 }; // = src/infer.py / Ultralytics predict
+
+const sha = (p) => createHash("sha256").update(readFileSync(p)).digest("hex");
+
+export function packageRelease({ version, modelDir = "models", dist = "dist", ort = "node_modules/onnxruntime-web/dist", out = "release" }) {
+  if (!/^v\d+\.\d+\.\d+$/.test(version ?? "")) throw new Error(`--version must be vX.Y.Z, got ${version}`);
+  const need = [join(dist, "shelf-agent.js"), join(modelDir, "model.onnx"), join(modelDir, "labels.json"), join(modelDir, "model.json")];
+  for (const p of need) if (!existsSync(p)) throw new Error(`missing ${p}`);
+
+  const info = JSON.parse(readFileSync(join(modelDir, "model.json"), "utf8"));
+  const labels = JSON.parse(readFileSync(join(modelDir, "labels.json"), "utf8"));
+  if (!Array.isArray(labels) || labels.length !== info.classes) {
+    throw new Error(`labels.json has ${labels.length} names, model.json says ${info.classes} classes`);
+  }
+  const ortFiles = existsSync(ort) ? readdirSync(ort).filter((f) => /^ort-wasm.*\.(wasm|mjs)$/.test(f)) : [];
+  if (ortFiles.length === 0) throw new Error(`no ort-wasm*.wasm/.mjs in ${ort}`);
+
+  const dir = join(out, version);
+  rmSync(dir, { recursive: true, force: true });
+  mkdirSync(dir, { recursive: true });
+  copyFileSync(join(dist, "shelf-agent.js"), join(dir, "shelf-agent.js"));
+  copyFileSync(join(modelDir, "model.onnx"), join(dir, "model.onnx"));
+  copyFileSync(join(modelDir, "labels.json"), join(dir, "labels.json"));
+  for (const f of ortFiles) copyFileSync(join(ort, f), join(dir, f));
+
+  const files = {};
+  for (const f of readdirSync(dir).sort()) files[f] = sha(join(dir, f));
+  const manifest = {
+    version,
+    contract: CONTRACT,
+    entry: "shelf-agent.js",
+    model: {
+      file: "model.onnx",
+      labels: "labels.json",
+      name: info.name,
+      dataset: info.dataset,
+      classes: info.classes,
+      imgsz: info.imgsz,
+      ...DEFAULTS,
+      sha256: files["model.onnx"],
+    },
+    files,
+  };
+  writeFileSync(join(dir, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+
+  const sums = readdirSync(dir).filter((f) => f !== "SHA256SUMS").sort()
+    .map((f) => `${sha(join(dir, f))}  ${f}`).join("\n");
+  writeFileSync(join(dir, "SHA256SUMS"), `${sums}\n`);
+  return { dir, manifest };
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const { values } = parseArgs({
+    options: { version: { type: "string" }, "model-dir": { type: "string" }, dist: { type: "string" }, ort: { type: "string" }, out: { type: "string" } },
+  });
+  try {
+    const { dir, manifest } = packageRelease({ version: values.version, modelDir: values["model-dir"], dist: values.dist, ort: values.ort, out: values.out });
+    console.log(`${dir}: ${Object.keys(manifest.files).length} files + manifest.json + SHA256SUMS`);
+  } catch (e) {
+    console.error(`package-release: ${e.message}`);
+    process.exit(1);
+  }
+}

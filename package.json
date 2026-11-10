@@ -1,0 +1,23 @@
+{
+  "name": "retail-shelf-agent",
+  "version": "0.0.0",
+  "private": true,
+  "description": "In-browser YOLOv8n shelf-product detector released for retail-shelf-web (contract shelf-agent-js/1)",
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --format=esm --target=es2022 --outfile=dist/shelf-agent.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "package": "node scripts/package-release.mjs",
+    "fetch-model": "node scripts/fetch-model.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  },
+  "dependencies": {
+    "onnxruntime-web": "^1.31.1"
+  }
+}
