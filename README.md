@@ -28,6 +28,8 @@ sha256 ของ model ไม่ตรง manifest หรือ labels ไม่
 | `scripts/fetch-model.mjs` + `model.lock.json` | ✅ ตอนนี้ชี้ model COCO สำหรับ dev |
 | `createSession` / `detect` (`src/detect.ts`) | ⏳ งาน A |
 | release workflow ตอน push tag | ⏳ งาน C1 |
+| model จริง (sell-products v3, 110 คลาส) + fixture `sell-v3` | ⛔ งาน T2 รอ `best.pt` จาก Google Drive (T1) |
+| release แรก `v0.1.0` | ⛔ งาน T4 รอ A, C1 และ T2 |
 
 ## Dev
 
