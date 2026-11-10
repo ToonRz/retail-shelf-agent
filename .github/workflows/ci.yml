@@ -14,5 +14,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
+      # parity tests (test/parity.test.ts) need both models
+      - run: npm run fetch-model
+      - run: npm run fetch-model:coco-dev
       - run: npm test
       - run: npm run build
+      - name: package (dry run)
+        run: npm run package -- --version v0.0.0 && cd release/v0.0.0 && sha256sum -c SHA256SUMS

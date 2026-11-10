@@ -1,0 +1,45 @@
+# C1: push a tag vX.Y.Z -> GitHub Release with the flat file set of SPEC §4.
+name: release
+on:
+  push:
+    tags: ["v*.*.*"]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: only vX.Y.Z tags
+        id: tag
+        run: |
+          if [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then echo "ok=1" >> "$GITHUB_OUTPUT"
+          else echo "::notice::$GITHUB_REF_NAME is not vX.Y.Z, nothing to release"; fi
+      - if: steps.tag.outputs.ok
+        uses: actions/checkout@v4
+      - if: steps.tag.outputs.ok
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - if: steps.tag.outputs.ok
+        run: npm ci
+      - if: steps.tag.outputs.ok
+        run: npm run typecheck
+      - if: steps.tag.outputs.ok
+        run: npm run fetch-model && npm run fetch-model:coco-dev
+      - if: steps.tag.outputs.ok
+        run: npm test
+      - if: steps.tag.outputs.ok
+        run: npm run build
+      - if: steps.tag.outputs.ok
+        run: npm run package -- --version "$GITHUB_REF_NAME"
+      - if: steps.tag.outputs.ok
+        name: verify
+        run: cd "release/$GITHUB_REF_NAME" && sha256sum -c SHA256SUMS
+      - if: steps.tag.outputs.ok
+        name: gh release create
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" release/"$GITHUB_REF_NAME"/* -R "$GITHUB_REPOSITORY" \
+            --title "$GITHUB_REF_NAME" --notes "shelf-agent $GITHUB_REF_NAME (contract shelf-agent-js/1). Model: $(jq -r '.model | "\(.name), \(.dataset), \(.classes) classes, sha256 \(.sha256)"' release/"$GITHUB_REF_NAME"/manifest.json). Verify: sha256sum -c SHA256SUMS"

@@ -9,11 +9,13 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "package": "node scripts/package-release.mjs",
-    "fetch-model": "node scripts/fetch-model.mjs"
+    "fetch-model": "node scripts/fetch-model.mjs",
+    "fetch-model:coco-dev": "node scripts/fetch-model.mjs --lock test/fixtures/coco-dev/model.lock.json --out models/coco-dev"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
     "esbuild": "^0.28.2",
+    "jpeg-js": "^0.4.4",
     "typescript": "^7.0.2",
     "vitest": "^5.1.0"
   },

@@ -18,8 +18,9 @@ function fakeRelease(version = "v0.1.0") {
   writeFileSync(join(models, "labels.json"), JSON.stringify(LABELS));
   writeFileSync(join(models, "model.json"), JSON.stringify({ name: "yolov8n", dataset: "test", classes: 3, imgsz: 640 }));
   writeFileSync(join(dist, "shelf-agent.js"), "export {}");
-  writeFileSync(join(ort, "ort-wasm-simd-threaded.wasm"), "wasm");
-  writeFileSync(join(ort, "ort-wasm-simd-threaded.mjs"), "mjs");
+  writeFileSync(join(ort, "ort-wasm-simd-threaded.jsep.wasm"), "wasm");
+  writeFileSync(join(ort, "ort-wasm-simd-threaded.jsep.mjs"), "mjs");
+  writeFileSync(join(ort, "ort-wasm-simd-threaded.asyncify.wasm"), "other variant, not copied");
   writeFileSync(join(ort, "ort.min.js"), "not copied");
   return { root, ...packageRelease({ version, modelDir: models, dist, ort, out: join(root, "release") }) };
 }
@@ -39,7 +40,7 @@ describe("package-release", () => {
   it("writes a flat release whose manifest passes parseManifest", () => {
     const { dir, manifest } = fakeRelease();
     expect(Object.keys(manifest.files)).toEqual([
-      "labels.json", "model.onnx", "ort-wasm-simd-threaded.mjs", "ort-wasm-simd-threaded.wasm", "shelf-agent.js",
+      "labels.json", "model.onnx", "ort-wasm-simd-threaded.jsep.mjs", "ort-wasm-simd-threaded.jsep.wasm", "shelf-agent.js",
     ]);
     expect(parseManifest(JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")), "v0.1.0").model.classes).toBe(3);
   });
@@ -95,12 +96,13 @@ describe("load", () => {
     expect(await codeOf(load({ baseUrl: "/x/", expectedVersion: "v0.1.0" }))).toBe("fetch_failed");
   });
 
-  it("reaches createSession (task A1) once every check passes, reporting download progress", async () => {
+  it("reaches createSession once every check passes, reporting download progress", async () => {
     const { dir } = fakeRelease();
     serve(dir);
     const seen: number[] = [];
     const res = await codeOf(load({ baseUrl: "/agent/v0.1.0/", expectedVersion: "v0.1.0", onProgress: (n) => seen.push(n) }));
-    expect(res).toBe("not_implemented");
+    // the fake model bytes pass sha256 but no backend can run them
+    expect(res).toBe("backend_unavailable");
     expect(seen.at(-1)).toBe("fake-onnx-bytes".length);
   });
 

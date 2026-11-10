@@ -13,6 +13,7 @@ import { join } from "node:path";
 import { parseArgs } from "node:util";
 
 export const CONTRACT = "shelf-agent-js/1";
+export const ORT_FILE = /^ort-wasm-simd-threaded\.jsep\.(wasm|mjs)$/;
 export const DEFAULTS = { conf: 0.25, iou: 0.7, max_det: 300 }; // = src/infer.py / Ultralytics predict
 
 const sha = (p) => createHash("sha256").update(readFileSync(p)).digest("hex");
@@ -27,8 +28,10 @@ export function packageRelease({ version, modelDir = "models", dist = "dist", or
   if (!Array.isArray(labels) || labels.length !== info.classes) {
     throw new Error(`labels.json has ${labels.length} names, model.json says ${info.classes} classes`);
   }
-  const ortFiles = existsSync(ort) ? readdirSync(ort).filter((f) => /^ort-wasm.*\.(wasm|mjs)$/.test(f)) : [];
-  if (ortFiles.length === 0) throw new Error(`no ort-wasm*.wasm/.mjs in ${ort}`);
+  // Only the JSEP build: one .wasm that runs both the WebGPU and the WASM execution providers
+  // (what the default `onnxruntime-web` import loads). The other 3 variants would add ~60 MB.
+  const ortFiles = existsSync(ort) ? readdirSync(ort).filter((f) => ORT_FILE.test(f)) : [];
+  if (!ortFiles.some((f) => f.endsWith(".wasm"))) throw new Error(`no ort-wasm-simd-threaded.jsep.wasm in ${ort}`);
 
   const dir = join(out, version);
   rmSync(dir, { recursive: true, force: true });
