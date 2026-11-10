@@ -29,7 +29,7 @@ sha256 ของ model ไม่ตรง manifest หรือ labels ไม่
 | `createSession` (WebGPU → WASM) / `detect` (`src/detect.ts`, `src/preprocess.ts`, `src/postprocess.ts`) | ✅ A1–A4 · unit test letterbox เทียบ Python/cv2, decode/NMS, parity บน `sell-v3` + `coco-dev` · ทดสอบใน Chromium แล้วทั้ง WebGPU และ WASM |
 | release workflow ตอน push tag (`.github/workflows/release.yml`) | ✅ C1 |
 | model จริง (sell-products v3, 110 คลาส) + fixture `sell-v3` | ✅ T2 (2026-11-10): release `model-yolov8n-v3` · output `[1,114,8400]` · `test/fixtures/sell-v3/` 16 รูป (15 + crop) สร้างจาก onnx ไฟล์เดียวกัน |
-| release แรก `v0.1.0` | งาน T4 (push tag `v0.1.0`) |
+| release แรก `v0.1.0` | ✅ [v0.1.0](https://github.com/ToonRz/retail-shelf-agent/releases/tag/v0.1.0) (2026-11-10) · เว็บ pin แล้ว |
 
 ## Dev
 
