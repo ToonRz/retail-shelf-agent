@@ -43,7 +43,7 @@ npm run build           # dist/shelf-agent.js
 npm run package -- --version v0.0.1   # release/v0.0.1/ (ต้อง build + fetch-model ก่อน)
 ```
 
-ออก release: `git tag vX.Y.Z && git push origin vX.Y.Z` → `release.yml` รัน typecheck / test / build / package แล้วสร้าง GitHub Release (ไฟล์ flat + `manifest.json` + `SHA256SUMS`)
+ออก release: `git tag vX.Y.Z && git push origin vX.Y.Z` (หรือ Actions → release → Run workflow แล้วใส่เวอร์ชัน) → `release.yml` รัน typecheck / test / build / package แล้วสร้าง GitHub Release (ไฟล์ flat + `manifest.json` + `SHA256SUMS`)
 release มีแค่ ort ชุด `ort-wasm-simd-threaded.jsep.*` (ตัวเดียวรันได้ทั้ง WebGPU และ WASM) รวมทั้ง release ~43 MB
 
 Parity (`test/parity.test.ts`, SPEC §6.4): รัน onnx ด้วย onnxruntime-web (wasm) ผ่าน letterbox + decode ตัวเดียวกับใน browser แล้วเทียบกับ `expected.json` ที่ Ultralytics ทายด้วย **onnx ไฟล์เดียวกัน**
