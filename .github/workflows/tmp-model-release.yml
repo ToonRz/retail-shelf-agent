@@ -1,0 +1,19 @@
+name: tmp model release (one-off)
+on:
+  push:
+    branches: [tmp-model-yolov8n-v3]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sha256sum release-staging/*
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create model-yolov8n-v3 release-staging/model.onnx release-staging/labels.json release-staging/model.json \
+            -R "$GITHUB_REPOSITORY" --target main --title model-yolov8n-v3 \
+            --notes "YOLOv8n trained on sell-products v3 (110 classes), exported with retail-shelf-detection src/export_agent_assets.py (ultralytics 8.4.208, opset 18, output [1,114,8400]). Source weights: retail-shelf-detection release weights-v1 yolov8n.pt (sha256 fe2557b6b7ba6c369c85ee47ad8c5f1eabbe78c7de2597912c669efc18760f61).
+          $(sha256sum release-staging/* | sed 's|release-staging/||')"
