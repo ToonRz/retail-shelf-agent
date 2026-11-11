@@ -1,0 +1,9 @@
+{
+  "note": "Shelf YOLOv8n, 1 class (product), trained on SKU-110K tiles (academic, non-commercial licence). Used by agent v0.2.x for the shelf watch page.",
+  "source": "https://github.com/ToonRz/retail-shelf-agent/releases/download/model-shelf-1class-v1/",
+  "files": {
+    "model.onnx": "f0437347b95116c9253adc55124b63b3e00fe7d30e4482e49d9b27f328126ab6",
+    "labels.json": "aaa6746d621fbb6e9feee48bb6138a73c84d66de7380ec1c4d1ef3888be15bca",
+    "model.json": "2d0d33dfda561af66173573c0a56f6f818528c6f279e48504065d1aac222fbee"
+  }
+}

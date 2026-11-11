@@ -20,6 +20,7 @@ interface Expected {
 const SETS = [
   { fixtures: "test/fixtures/sell-v3", models: "models" },
   { fixtures: "test/fixtures/coco-dev", models: "models/coco-dev" },
+  { fixtures: "test/fixtures/shelf-v1", models: "models/shelf" },
 ];
 
 /** Greedy one-to-one matching of SPEC §6.4. Returns a list of problems (empty = parity holds). */

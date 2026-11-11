@@ -34,13 +34,16 @@ jobs:
       - if: steps.tag.outputs.ok
         run: npm run typecheck
       - if: steps.tag.outputs.ok
-        run: npm run fetch-model && npm run fetch-model:coco-dev
+        run: npm run fetch-model && npm run fetch-model:coco-dev && npm run fetch-model:shelf
       - if: steps.tag.outputs.ok
         run: npm test
       - if: steps.tag.outputs.ok
         run: npm run build
+      # v0.2.x carries the 1-class shelf model (web: agent-shelf.version), every other line the 110-class model.
       - if: steps.tag.outputs.ok
-        run: npm run package -- --version "$TAG"
+        run: |
+          if [[ "$TAG" == v0.2.* ]]; then MODEL_DIR=models/shelf; else MODEL_DIR=models; fi
+          npm run package -- --version "$TAG" --model-dir "$MODEL_DIR"
       - if: steps.tag.outputs.ok
         name: verify
         run: cd "release/$TAG" && sha256sum -c SHA256SUMS

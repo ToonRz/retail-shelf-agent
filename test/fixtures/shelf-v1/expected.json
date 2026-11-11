@@ -1,0 +1,493 @@
+{
+ "conf": 0.25,
+ "iou": 0.7,
+ "imgsz": 640,
+ "model_sha256": "f0437347b95116c9253adc55124b63b3e00fe7d30e4482e49d9b27f328126ab6",
+ "images": [
+  {
+   "image": "23EB2CED-211B-4A4B-950D-55EA5C6A729F_jpg.rf.118d558879077a6fd3bd4159e34bf90d.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.5513,
+     "xyxy": [
+      91.24,
+      218.96,
+      564.46,
+      406.84
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_4024_JPG.rf.e9cfc45105ab8d25351b87123fe9ca4c.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": []
+  },
+  {
+   "image": "IMG_4270_JPG.rf.84bf2b180daa6d6c22c90033b1182bdd.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": []
+  },
+  {
+   "image": "IMG_4452_JPG.rf.f4055b169a94d3bb1efe4c08a6c5e32f.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": []
+  },
+  {
+   "image": "IMG_4691_JPG.rf.4f3e1437d3f82bc99392ac01c6f2ef9a.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.3077,
+     "xyxy": [
+      0.63,
+      377.72,
+      585.1,
+      591.99
+     ]
+    },
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.2661,
+     "xyxy": [
+      167.63,
+      0.0,
+      281.94,
+      85.29
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_4877_JPG.rf.8fe465d44086164a75d613b644638dfc.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.7609,
+     "xyxy": [
+      46.19,
+      210.39,
+      509.59,
+      609.1
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_5053_JPG.rf.f4e603aac8815f1e548ef8b636d8b207.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.579,
+     "xyxy": [
+      199.2,
+      330.44,
+      428.41,
+      548.5
+     ]
+    },
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.3245,
+     "xyxy": [
+      0.7,
+      0.39,
+      159.23,
+      227.78
+     ]
+    },
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.3088,
+     "xyxy": [
+      253.02,
+      0.1,
+      298.21,
+      237.16
+     ]
+    },
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.2514,
+     "xyxy": [
+      300.71,
+      1.08,
+      353.84,
+      241.01
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_5190_JPG.rf.4527f5c54b1d7276c4fddde4490d10d2.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.3445,
+     "xyxy": [
+      16.28,
+      186.14,
+      523.93,
+      617.19
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_5531_JPG.rf.50950edd3b34fe62b46e61b19c91d768.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.3261,
+     "xyxy": [
+      7.2,
+      91.94,
+      567.61,
+      298.85
+     ]
+    },
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.2946,
+     "xyxy": [
+      10.03,
+      0.0,
+      571.58,
+      303.18
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_5719_JPG.rf.c9c45905728de0ee366fd8eb1accbb9e.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.5419,
+     "xyxy": [
+      275.37,
+      273.99,
+      416.09,
+      441.13
+     ]
+    },
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.3805,
+     "xyxy": [
+      274.48,
+      155.28,
+      441.47,
+      265.66
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_5895_JPG.rf.0774158c96bfb7f9e10ee8acd93a9148.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.326,
+     "xyxy": [
+      425.55,
+      216.42,
+      569.27,
+      506.03
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_6073_JPG.rf.ff1ec060df09ae69d4a160befb51718e.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.4417,
+     "xyxy": [
+      254.52,
+      93.66,
+      479.56,
+      538.95
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_6237_JPG.rf.9504178f3902d975283f7abcefa94e83.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.5249,
+     "xyxy": [
+      192.99,
+      76.61,
+      458.44,
+      640.0
+     ]
+    },
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.2855,
+     "xyxy": [
+      603.91,
+      4.35,
+      640.0,
+      201.57
+     ]
+    },
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.2646,
+     "xyxy": [
+      193.5,
+      225.02,
+      465.2,
+      396.08
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_6654_JPG.rf.3bc748854e2648ec0400ce0d00b20517.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.5427,
+     "xyxy": [
+      0.25,
+      293.55,
+      83.86,
+      514.57
+     ]
+    },
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.5149,
+     "xyxy": [
+      225.46,
+      192.49,
+      428.92,
+      463.5
+     ]
+    }
+   ]
+  },
+  {
+   "image": "IMG_7107_JPG.rf.04a4345813cef34c3d9e77aea29cc728.jpg",
+   "width": 640,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.627,
+     "xyxy": [
+      572.3,
+      553.26,
+      639.7,
+      639.36
+     ]
+    },
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.4624,
+     "xyxy": [
+      434.3,
+      124.66,
+      597.44,
+      201.36
+     ]
+    },
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.4604,
+     "xyxy": [
+      215.78,
+      287.87,
+      416.51,
+      475.58
+     ]
+    },
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.2531,
+     "xyxy": [
+      452.58,
+      63.7,
+      600.63,
+      121.77
+     ]
+    }
+   ]
+  },
+  {
+   "image": "video_close_t40.jpg",
+   "width": 1440,
+   "height": 1080,
+   "boxes": [
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.7786,
+     "xyxy": [
+      969.2,
+      542.05,
+      1440.0,
+      1027.38
+     ]
+    },
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.7461,
+     "xyxy": [
+      33.97,
+      81.19,
+      425.96,
+      502.35
+     ]
+    },
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.6882,
+     "xyxy": [
+      540.82,
+      710.6,
+      914.55,
+      1031.06
+     ]
+    },
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.6638,
+     "xyxy": [
+      1007.7,
+      56.85,
+      1364.23,
+      504.98
+     ]
+    },
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.5556,
+     "xyxy": [
+      1218.76,
+      63.15,
+      1366.88,
+      499.98
+     ]
+    },
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.5032,
+     "xyxy": [
+      491.15,
+      154.14,
+      940.82,
+      505.29
+     ]
+    },
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.4827,
+     "xyxy": [
+      146.43,
+      646.83,
+      336.06,
+      1028.97
+     ]
+    },
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.3604,
+     "xyxy": [
+      1038.35,
+      69.07,
+      1195.83,
+      493.75
+     ]
+    }
+   ]
+  },
+  {
+   "image": "video_slot_empty_t200.jpg",
+   "width": 480,
+   "height": 496,
+   "boxes": []
+  },
+  {
+   "image": "crop_23EB2CED-211B-4A4B-950D-55EA5C6A729F_jpg.rf.118d558879077a6fd3bd4159e34bf90d.jpg",
+   "width": 480,
+   "height": 640,
+   "boxes": [
+    {
+     "classId": 0,
+     "cls": "product",
+     "conf": 0.4518,
+     "xyxy": [
+      101.63,
+      222.96,
+      480.0,
+      404.25
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,8 +1,13 @@
 # retail-shelf-agent
 
-ตัวตรวจจับสินค้าบนชั้นวาง (YOLOv8n, 110 คลาส) ที่ **รันใน browser** ด้วย onnxruntime-web
-ออกเป็น GitHub Release แล้ว [retail-shelf-web](https://github.com/ToonRz/retail-shelf-web) pin เวอร์ชันด้วย `agent.version` และ bump มาใช้
-(แบบเดียวกับ zcrX ↔ zcrAgentX)
+ตัวตรวจจับสินค้าบนชั้นวาง (YOLOv8n) ที่ **รันใน browser** ด้วย onnxruntime-web
+ออกเป็น GitHub Release แล้ว [retail-shelf-web](https://github.com/ToonRz/retail-shelf-web) pin เวอร์ชันแล้ว bump มาใช้
+(แบบเดียวกับ zcrX ↔ zcrAgentX) มีสองสาย:
+
+| สาย release | model | เว็บ pin ใน | ใช้ที่ |
+|---|---|---|---|
+| `v0.1.x` | sell-products v3, 110 คลาส (`model.lock.json`) | `agent.version` | หน้าตรวจจับ |
+| `v0.2.x` | shelf 1 คลาส `product`, เทรนบน SKU-110K (`model.shelf.lock.json`) | `agent-shelf.version` | หน้าเฝ้าชั้นวาง (แจ้งเตือนของหมดราย slot) |
 
 - Spec: [retail-shelf-detection/docs/agent-connection/SPEC.md](https://github.com/ToonRz/retail-shelf-detection/blob/main/docs/agent-connection/SPEC.md)
 - งานที่เหลือและเจ้าของงาน: [TASKS.md](https://github.com/ToonRz/retail-shelf-detection/blob/main/docs/agent-connection/TASKS.md)
@@ -30,6 +35,8 @@ sha256 ของ model ไม่ตรง manifest หรือ labels ไม่
 | release workflow ตอน push tag (`.github/workflows/release.yml`) | ✅ C1 |
 | model จริง (sell-products v3, 110 คลาส) + fixture `sell-v3` | ✅ T2 (2026-11-10): release `model-yolov8n-v3` · output `[1,114,8400]` · `test/fixtures/sell-v3/` 16 รูป (15 + crop) สร้างจาก onnx ไฟล์เดียวกัน |
 | release แรก `v0.1.0` | ✅ [v0.1.0](https://github.com/ToonRz/retail-shelf-agent/releases/tag/v0.1.0) (2026-11-10) · เว็บ pin แล้ว |
+| shelf model 1 คลาส + fixture `shelf-v1` | ✅ (2026-11-12): release `model-shelf-1class-v1` · output `[1,5,8400]` · `test/fixtures/shelf-v1/` ใช้รูป sell-v3 ชุดเดิม (CC BY) เพราะห้ามแจกรูป SKU-110K |
+| release `v0.2.0` (shelf model) | ✅ `release.yml` ใช้ `models/shelf` เมื่อ tag เป็น `v0.2.*` |
 
 ## Dev
 
@@ -37,6 +44,7 @@ sha256 ของ model ไม่ตรง manifest หรือ labels ไม่
 npm ci
 npm run fetch-model     # models/ ตาม model.lock.json (model-yolov8n-v3, 110 คลาส)
 npm run fetch-model:coco-dev   # models/coco-dev/ (model COCO ที่ใช้ทำ fixture coco-dev)
+npm run fetch-model:shelf      # models/shelf/ ตาม model.shelf.lock.json (shelf 1 คลาส)
 npm test                # vitest
 npm run typecheck
 npm run build           # dist/shelf-agent.js
@@ -49,8 +57,12 @@ release มีแค่ ort ชุด `ort-wasm-simd-threaded.jsep.*` (ตัว
 Parity (`test/parity.test.ts`, SPEC §6.4): รัน onnx ด้วย onnxruntime-web (wasm) ผ่าน letterbox + decode ตัวเดียวกับใน browser แล้วเทียบกับ `expected.json` ที่ Ultralytics ทายด้วย **onnx ไฟล์เดียวกัน**
 - `test/fixtures/sell-v3/` ↔ `model.lock.json` (model จริง)
 - `test/fixtures/coco-dev/` ↔ `test/fixtures/coco-dev/model.lock.json` (COCO dev · รูปที่ต้อง resize จริง)
+- `test/fixtures/shelf-v1/` ↔ `model.shelf.lock.json` (shelf 1 คลาส · รูปชุดเดียวกับ sell-v3)
 
 ## License / ที่มา
 
 Model ได้มาจาก Ultralytics YOLOv8 (AGPL-3.0) และ dataset [Sell Products – O2O Minimart](https://universe.roboflow.com/o2o-minimart/sell-products) (CC BY 4.0) ซึ่งรูปใน `test/fixtures/sell-v3/` มาจาก test split ของ dataset นี้
 รูป `bus.jpg` ใน fixture มาจาก Ultralytics assets
+
+Shelf model (`v0.2.x`) เทรนบน [SKU-110K](https://github.com/eg4000/SKU110K_CVPR19) ซึ่ง licence ให้ใช้ **เพื่อการศึกษาและไม่ใช่เชิงพาณิชย์เท่านั้น**
+และห้ามแจกจ่ายหรือดัดแปลงรูป จึงไม่มีรูป SKU-110K ใน repo นี้ · ถ้าจะใช้ model นี้เชิงพาณิชย์ต้องขออนุญาต Trax ก่อน หรือเทรนใหม่ด้วยรูปของตัวเอง

@@ -17,6 +17,7 @@ jobs:
       # parity tests (test/parity.test.ts) need both models
       - run: npm run fetch-model
       - run: npm run fetch-model:coco-dev
+      - run: npm run fetch-model:shelf
       - run: npm test
       - run: npm run build
       - name: package (dry run)

@@ -10,7 +10,8 @@
     "test": "vitest run",
     "package": "node scripts/package-release.mjs",
     "fetch-model": "node scripts/fetch-model.mjs",
-    "fetch-model:coco-dev": "node scripts/fetch-model.mjs --lock test/fixtures/coco-dev/model.lock.json --out models/coco-dev"
+    "fetch-model:coco-dev": "node scripts/fetch-model.mjs --lock test/fixtures/coco-dev/model.lock.json --out models/coco-dev",
+    "fetch-model:shelf": "node scripts/fetch-model.mjs --lock model.shelf.lock.json --out models/shelf"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
