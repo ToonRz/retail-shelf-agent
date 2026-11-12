@@ -37,6 +37,7 @@ sha256 ของ model ไม่ตรง manifest หรือ labels ไม่
 | release แรก `v0.1.0` | ✅ [v0.1.0](https://github.com/ToonRz/retail-shelf-agent/releases/tag/v0.1.0) (2026-11-10) · เว็บ pin แล้ว |
 | shelf model 1 คลาส + fixture `shelf-v1` | ✅ (2026-11-12): release `model-shelf-1class-v1` · output `[1,5,8400]` · `test/fixtures/shelf-v1/` ใช้รูป sell-v3 ชุดเดิม (CC BY, เซฟใหม่เป็น JPEG 4:4:4) + 2 เฟรมจากวิดีโอชั้นวางจำลอง เพราะห้ามแจกรูป SKU-110K · release [v0.2.0](https://github.com/ToonRz/retail-shelf-agent/releases/tag/v0.2.0) |
 | release `v0.2.0` (shelf model) | ✅ `release.yml` ใช้ `models/shelf` เมื่อ tag เป็น `v0.2.*` |
+| shelf model v2 (เทรนครบ 30 epoch บน Colab) + release `v0.2.1` | ✅ (2026-11-12): release `model-shelf-1class-v2` · SKU-110K test tiles mAP50 0.927 (v1: 0.842) · fixture `shelf-v1` สร้างใหม่จาก model นี้ |
 
 ## Dev
 
@@ -57,7 +58,7 @@ release มีแค่ ort ชุด `ort-wasm-simd-threaded.jsep.*` (ตัว
 Parity (`test/parity.test.ts`, SPEC §6.4): รัน onnx ด้วย onnxruntime-web (wasm) ผ่าน letterbox + decode ตัวเดียวกับใน browser แล้วเทียบกับ `expected.json` ที่ Ultralytics ทายด้วย **onnx ไฟล์เดียวกัน**
 - `test/fixtures/sell-v3/` ↔ `model.lock.json` (model จริง)
 - `test/fixtures/coco-dev/` ↔ `test/fixtures/coco-dev/model.lock.json` (COCO dev · รูปที่ต้อง resize จริง)
-- `test/fixtures/shelf-v1/` ↔ `model.shelf.lock.json` (shelf 1 คลาส · รูป sell-v3 แบบ JPEG 4:4:4 เพราะ jpeg-js กับ libjpeg ขยาย chroma 4:2:0 ต่างกันพอจะทำให้คะแนนก้ำกึ่งคลาดเกิน 0.02)
+- `test/fixtures/shelf-v1/` ↔ `model.shelf.lock.json` (shelf 1 คลาส · รูป sell-v3 แบบ JPEG 4:4:4 คุณภาพ 100 เพราะ jpeg-js กับ libjpeg ถอดรหัสต่างกัน (4:2:0 ต่างได้ ~50 ระดับ, 4:4:4 ไม่เกิน 3) พอจะทำให้คะแนนก้ำกึ่งคลาดเกิน 0.02 · ตัด `IMG_6237` ออกเพราะกล่องของมันไวมาก: onnx ตัวเดียวกันบนพิกเซลที่ jpeg-js ถอดได้ 0.3829 เท่ากับ agent แต่ต่างจาก libjpeg 0.021 · เฟรมวิดีโอย่อเหลือ 640×480)
 
 ## License / ที่มา
 
