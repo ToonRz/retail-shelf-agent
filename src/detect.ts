@@ -1,8 +1,8 @@
 // Inference pipeline (task A): onnxruntime-web session -> letterbox -> run -> decode.
 // load() in index.ts has already checked manifest / sha256 / labels before createSession.
 import * as ort from "onnxruntime-web";
-import { decode } from "./postprocess";
-import { letterbox } from "./preprocess";
+import { decode, mergeBoxes } from "./postprocess";
+import { type Letterbox, letterbox } from "./preprocess";
 import { AgentError, type Backend, type DetectInput, type DetectOptions, type DetectResult, type Manifest } from "./types";
 
 export interface Session {
@@ -10,6 +10,12 @@ export interface Session {
   ort: ort.InferenceSession;
   inputName: string;
   outputName: string;
+}
+
+export interface ShelfRunner {
+  session: Session;
+  labels: string[];
+  model: Pick<Manifest["model"], "imgsz" | "conf" | "iou" | "max_det">;
 }
 
 async function hasWebGPU(): Promise<boolean> {
@@ -61,15 +67,15 @@ export function toRGBA(image: DetectInput): { data: Uint8ClampedArray; width: nu
   return { data: ctx.getImageData(0, 0, width, height).data, width, height };
 }
 
-/** Run the model on RGBA pixels. Shared by detect() and the parity test. */
-export async function runRGBA(
+async function runLetterbox(
   session: Session,
-  rgba: { data: ArrayLike<number>; width: number; height: number },
+  lb: Letterbox,
+  width: number,
+  height: number,
   labels: string[],
   model: Pick<Manifest["model"], "imgsz" | "conf" | "iou" | "max_det">,
   opts: DetectOptions = {},
 ) {
-  const lb = letterbox(rgba.data, rgba.width, rgba.height, model.imgsz);
   const input = new ort.Tensor("float32", lb.tensor, [1, 3, model.imgsz, model.imgsz]);
   const out = await session.ort.run({ [session.inputName]: input });
   const t = out[session.outputName];
@@ -78,7 +84,24 @@ export async function runRGBA(
   const data = (await t.getData()) as Float32Array;
   t.dispose?.();
   return decode(data, C, { conf: opts.conf ?? model.conf, iou: opts.iou ?? model.iou, maxDet: opts.maxDet ?? model.max_det },
-    { left: lb.left, top: lb.top, gx: lb.gx, gy: lb.gy, width: rgba.width, height: rgba.height }, labels);
+    { left: lb.left, top: lb.top, gx: lb.gx, gy: lb.gy, width, height }, labels);
+}
+
+/** Run the model (and optional shelf model) on RGBA pixels. Shared by detect() and the parity test. */
+export async function runRGBA(
+  session: Session,
+  rgba: { data: ArrayLike<number>; width: number; height: number },
+  labels: string[],
+  model: Pick<Manifest["model"], "imgsz" | "conf" | "iou" | "max_det">,
+  opts: DetectOptions = {},
+  shelf?: ShelfRunner,
+) {
+  const lb = letterbox(rgba.data, rgba.width, rgba.height, model.imgsz);
+  const primary = await runLetterbox(session, lb, rgba.width, rgba.height, labels, model, opts);
+  if (!shelf) return primary;
+  const shelfLb = shelf.model.imgsz === model.imgsz ? lb : letterbox(rgba.data, rgba.width, rgba.height, shelf.model.imgsz);
+  const shelfBoxes = await runLetterbox(shelf.session, shelfLb, rgba.width, rgba.height, shelf.labels, shelf.model, opts);
+  return mergeBoxes(primary, shelfBoxes, labels.length, opts.maxDet ?? model.max_det);
 }
 
 export async function detect(
@@ -87,10 +110,11 @@ export async function detect(
   labels: string[],
   manifest: Manifest,
   opts: DetectOptions = {},
+  shelf?: ShelfRunner,
 ): Promise<DetectResult> {
   const t0 = performance.now();
   const rgba = toRGBA(image);
-  const boxes = await runRGBA(session, rgba, labels, manifest.model, opts);
+  const boxes = await runRGBA(session, rgba, labels, manifest.model, opts, shelf);
   return {
     version: manifest.version,
     model_sha256: manifest.model.sha256,

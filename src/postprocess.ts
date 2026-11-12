@@ -26,6 +26,37 @@ export function iou(a: ArrayLike<number>, b: ArrayLike<number>): number {
   return union > 0 ? inter / union : 0;
 }
 
+/** Intersection divided by the smaller box's area (1 when one box is completely inside the other). */
+export function overlapRatio(a: ArrayLike<number>, b: ArrayLike<number>): number {
+  const iw = Math.max(0, Math.min(a[2], b[2]) - Math.max(a[0], b[0]));
+  const ih = Math.max(0, Math.min(a[3], b[3]) - Math.max(a[1], b[1]));
+  const inter = iw * ih;
+  if (inter <= 0) return 0;
+  const minArea = Math.min((a[2] - a[0]) * (a[3] - a[1]), (b[2] - b[0]) * (b[3] - b[1]));
+  return minArea > 0 ? inter / minArea : 0;
+}
+
+/**
+ * Combine named product boxes (110 classes, v0.1.0) with generic shelf boxes ("product", v0.2.1):
+ * keep every named product box, and add any shelf box that does not overlap an already-kept box
+ * (using classIdOffset + s.classId so "product" has a distinct classId). Sorted by conf descending.
+ */
+export function mergeBoxes(
+  primary: Box[],
+  shelf: Box[],
+  classIdOffset: number,
+  maxDet = 300,
+  matchIou = 0.45,
+): Box[] {
+  const kept: Box[] = [...primary];
+  for (const s of shelf) {
+    if (kept.some((k) => iou(k.xyxy, s.xyxy) > matchIou || overlapRatio(k.xyxy, s.xyxy) >= 0.7)) continue;
+    kept.push({ ...s, classId: classIdOffset + s.classId });
+  }
+  kept.sort((a, b) => b.conf - a.conf);
+  return kept.slice(0, maxDet);
+}
+
 /**
  * SPEC §6.3. `output` is output0 flattened, channel-major [1, 4 + C, N]: value k of anchor i is
  * output[k * N + i]; k = 0..3 are cx, cy, w, h in input pixels, k = 4.. are class scores.

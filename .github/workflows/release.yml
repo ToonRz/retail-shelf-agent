@@ -39,11 +39,16 @@ jobs:
         run: npm test
       - if: steps.tag.outputs.ok
         run: npm run build
-      # v0.2.x carries the 1-class shelf model (web: agent-shelf.version), every other line the 110-class model.
+      # v0.1.x = 110-class model only; v0.2.x = 1-class shelf model only; v0.3.x+ = combined (both models).
       - if: steps.tag.outputs.ok
         run: |
-          if [[ "$TAG" == v0.2.* ]]; then MODEL_DIR=models/shelf; else MODEL_DIR=models; fi
-          npm run package -- --version "$TAG" --model-dir "$MODEL_DIR"
+          if [[ "$TAG" == v0.1.* ]]; then
+            npm run package -- --version "$TAG" --model-dir models
+          elif [[ "$TAG" == v0.2.* ]]; then
+            npm run package -- --version "$TAG" --model-dir models/shelf
+          else
+            npm run package -- --version "$TAG" --model-dir models --shelf-model-dir models/shelf
+          fi
       - if: steps.tag.outputs.ok
         name: verify
         run: cd "release/$TAG" && sha256sum -c SHA256SUMS

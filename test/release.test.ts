@@ -9,20 +9,33 @@ import { AgentError, load, parseManifest, sha256Hex } from "../src/index";
 
 const LABELS = ["pepsi", "lays-salt", "mama-pork"];
 
-/** A fake but structurally real release folder (tiny fake model). */
-function fakeRelease(version = "v0.1.0") {
+/** A fake but structurally real release folder (tiny fake model, optionally with a second shelf model). */
+function fakeRelease(version = "v0.1.0", withShelf = false) {
   const root = mkdtempSync(join(tmpdir(), "shelf-agent-"));
-  const models = join(root, "models"), dist = join(root, "dist"), ort = join(root, "ort");
-  for (const d of [models, dist, ort]) mkdirSync(d);
+  const models = join(root, "models"), shelfModels = join(root, "shelf-models"), dist = join(root, "dist"), ort = join(root, "ort");
+  for (const d of [models, shelfModels, dist, ort]) mkdirSync(d);
   writeFileSync(join(models, "model.onnx"), "fake-onnx-bytes");
   writeFileSync(join(models, "labels.json"), JSON.stringify(LABELS));
   writeFileSync(join(models, "model.json"), JSON.stringify({ name: "yolov8n", dataset: "test", classes: 3, imgsz: 640 }));
+  writeFileSync(join(shelfModels, "model.onnx"), "fake-shelf-onnx");
+  writeFileSync(join(shelfModels, "labels.json"), JSON.stringify(["product"]));
+  writeFileSync(join(shelfModels, "model.json"), JSON.stringify({ name: "shelf_1class", dataset: "shelf-test", classes: 1, imgsz: 640 }));
   writeFileSync(join(dist, "shelf-agent.js"), "export {}");
   writeFileSync(join(ort, "ort-wasm-simd-threaded.jsep.wasm"), "wasm");
   writeFileSync(join(ort, "ort-wasm-simd-threaded.jsep.mjs"), "mjs");
   writeFileSync(join(ort, "ort-wasm-simd-threaded.asyncify.wasm"), "other variant, not copied");
   writeFileSync(join(ort, "ort.min.js"), "not copied");
-  return { root, ...packageRelease({ version, modelDir: models, dist, ort, out: join(root, "release") }) };
+  return {
+    root,
+    ...packageRelease({
+      version,
+      modelDir: models,
+      shelfModelDir: withShelf ? shelfModels : undefined,
+      dist,
+      ort,
+      out: join(root, "release"),
+    }),
+  };
 }
 
 /** Serve a release folder through a stubbed global fetch. */
@@ -43,6 +56,18 @@ describe("package-release", () => {
       "labels.json", "model.onnx", "ort-wasm-simd-threaded.jsep.mjs", "ort-wasm-simd-threaded.jsep.wasm", "shelf-agent.js",
     ]);
     expect(parseManifest(JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")), "v0.1.0").model.classes).toBe(3);
+  });
+
+  it("writes a combined dual-model release when shelfModelDir is provided", () => {
+    const { dir, manifest } = fakeRelease("v0.3.0", true);
+    expect(Object.keys(manifest.files)).toEqual([
+      "labels.json", "model.onnx", "ort-wasm-simd-threaded.jsep.mjs", "ort-wasm-simd-threaded.jsep.wasm",
+      "shelf-agent.js", "shelf-labels.json", "shelf-model.onnx",
+    ]);
+    const parsed = parseManifest(JSON.parse(readFileSync(join(dir, "manifest.json"), "utf8")), "v0.3.0");
+    expect(parsed.model.classes).toBe(3);
+    expect(parsed.shelfModel?.classes).toBe(1);
+    expect(parsed.shelfModel?.file).toBe("shelf-model.onnx");
   });
 
   it("SHA256SUMS covers every file including manifest.json, sha256sum format", () => {
@@ -104,6 +129,18 @@ describe("load", () => {
     // the fake model bytes pass sha256 but no backend can run them
     expect(res).toBe("backend_unavailable");
     expect(seen.at(-1)).toBe("fake-onnx-bytes".length);
+  });
+
+  it("checks shelfModel sha256 and labels when a release bundles both models", async () => {
+    const { dir } = fakeRelease("v0.3.0", true);
+    serve(dir, { "shelf-model.onnx": "tampered" });
+    expect(await codeOf(load({ baseUrl: "/agent/v0.3.0/", expectedVersion: "v0.3.0" }))).toBe("model_sha256_mismatch");
+    serve(dir, { "shelf-labels.json": JSON.stringify(["a", "b"]) });
+    expect(await codeOf(load({ baseUrl: "/agent/v0.3.0/", expectedVersion: "v0.3.0" }))).toBe("labels_mismatch");
+    serve(dir);
+    const seen: number[] = [];
+    expect(await codeOf(load({ baseUrl: "/agent/v0.3.0/", expectedVersion: "v0.3.0", onProgress: (n) => seen.push(n) }))).toBe("backend_unavailable");
+    expect(seen.at(-1)).toBe("fake-onnx-bytes".length + "fake-shelf-onnx".length);
   });
 
   it("sha256Hex matches node:crypto", async () => {

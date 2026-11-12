@@ -91,3 +91,42 @@ for (const set of SETS) {
     }
   });
 }
+
+describe("combined detection (v0.1.0 110-class + v0.2.1 1-class shelf)", () => {
+  let primarySession: Session;
+  let shelfSession: Session;
+  let primaryLabels: string[];
+  let shelfLabels: string[];
+
+  beforeAll(async () => {
+    primaryLabels = JSON.parse(readFileSync("models/labels.json", "utf8"));
+    shelfLabels = JSON.parse(readFileSync("models/shelf/labels.json", "utf8"));
+    const p = await ort.InferenceSession.create(readFileSync("models/model.onnx"), { executionProviders: ["wasm"] });
+    const s = await ort.InferenceSession.create(readFileSync("models/shelf/model.onnx"), { executionProviders: ["wasm"] });
+    primarySession = { backend: "wasm", ort: p, inputName: p.inputNames[0], outputName: p.outputNames[0] };
+    shelfSession = { backend: "wasm", ort: s, inputName: s.inputNames[0], outputName: s.outputNames[0] };
+  }, 60_000);
+  afterAll(async () => {
+    await primarySession?.ort.release();
+    await shelfSession?.ort.release();
+  });
+
+  it("keeps named class from v0.1.0 and adds unrecognized shelf products from v0.2.1 as 'product'", async () => {
+    const cfg = { imgsz: 640, conf: 0.25, iou: 0.7, max_det: 300 };
+    const shelf = { session: shelfSession, labels: shelfLabels, model: cfg };
+
+    // IMG_5895: v0.1.0 recognizes central 'yen-yen'; v0.2.1 also sees two neighbouring products on the shelf
+    const img1 = jpeg.decode(readFileSync("test/fixtures/shelf-v1/IMG_5895_JPG.rf.0774158c96bfb7f9e10ee8acd93a9148.jpg"), { useTArray: true, formatAsRGBA: true });
+    const boxes1 = await runRGBA(primarySession, img1, primaryLabels, cfg, {}, shelf);
+    expect(boxes1.map((b) => [b.cls, b.classId])).toEqual([
+      ["yen-yen", 105],
+      ["product", 110],
+      ["product", 110],
+    ]);
+
+    // 23EB2CED: v0.1.0 returns [], v0.2.1 detects the product -> combined returns ["product", 110]
+    const img2 = jpeg.decode(readFileSync("test/fixtures/shelf-v1/23EB2CED-211B-4A4B-950D-55EA5C6A729F_jpg.rf.118d558879077a6fd3bd4159e34bf90d.jpg"), { useTArray: true, formatAsRGBA: true });
+    const boxes2 = await runRGBA(primarySession, img2, primaryLabels, cfg, {}, shelf);
+    expect(boxes2.map((b) => [b.cls, b.classId])).toEqual([["product", 110]]);
+  }, 60_000);
+});

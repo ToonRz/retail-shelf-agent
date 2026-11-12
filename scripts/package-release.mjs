@@ -10,6 +10,7 @@
 import { createHash } from "node:crypto";
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 
 export const CONTRACT = "shelf-agent-js/1";
@@ -18,16 +19,25 @@ export const DEFAULTS = { conf: 0.25, iou: 0.7, max_det: 300 }; // = src/infer.p
 
 const sha = (p) => createHash("sha256").update(readFileSync(p)).digest("hex");
 
-export function packageRelease({ version, modelDir = "models", dist = "dist", ort = "node_modules/onnxruntime-web/dist", out = "release" }) {
-  if (!/^v\d+\.\d+\.\d+$/.test(version ?? "")) throw new Error(`--version must be vX.Y.Z, got ${version}`);
-  const need = [join(dist, "shelf-agent.js"), join(modelDir, "model.onnx"), join(modelDir, "labels.json"), join(modelDir, "model.json")];
-  for (const p of need) if (!existsSync(p)) throw new Error(`missing ${p}`);
-
-  const info = JSON.parse(readFileSync(join(modelDir, "model.json"), "utf8"));
-  const labels = JSON.parse(readFileSync(join(modelDir, "labels.json"), "utf8"));
+function readModelMeta(dir) {
+  for (const f of ["model.onnx", "labels.json", "model.json"]) {
+    const p = join(dir, f);
+    if (!existsSync(p)) throw new Error(`missing ${p}`);
+  }
+  const info = JSON.parse(readFileSync(join(dir, "model.json"), "utf8"));
+  const labels = JSON.parse(readFileSync(join(dir, "labels.json"), "utf8"));
   if (!Array.isArray(labels) || labels.length !== info.classes) {
     throw new Error(`labels.json has ${labels.length} names, model.json says ${info.classes} classes`);
   }
+  return info;
+}
+
+export function packageRelease({ version, modelDir = "models", shelfModelDir, dist = "dist", ort = "node_modules/onnxruntime-web/dist", out = "release" }) {
+  if (!/^v\d+\.\d+\.\d+$/.test(version ?? "")) throw new Error(`--version must be vX.Y.Z, got ${version}`);
+  if (!existsSync(join(dist, "shelf-agent.js"))) throw new Error(`missing ${join(dist, "shelf-agent.js")}`);
+  const info = readModelMeta(modelDir);
+  const shelfInfo = shelfModelDir ? readModelMeta(shelfModelDir) : null;
+
   // Only the JSEP build: one .wasm that runs both the WebGPU and the WASM execution providers
   // (what the default `onnxruntime-web` import loads). The other 3 variants would add ~60 MB.
   const ortFiles = existsSync(ort) ? readdirSync(ort).filter((f) => ORT_FILE.test(f)) : [];
@@ -39,6 +49,10 @@ export function packageRelease({ version, modelDir = "models", dist = "dist", or
   copyFileSync(join(dist, "shelf-agent.js"), join(dir, "shelf-agent.js"));
   copyFileSync(join(modelDir, "model.onnx"), join(dir, "model.onnx"));
   copyFileSync(join(modelDir, "labels.json"), join(dir, "labels.json"));
+  if (shelfModelDir) {
+    copyFileSync(join(shelfModelDir, "model.onnx"), join(dir, "shelf-model.onnx"));
+    copyFileSync(join(shelfModelDir, "labels.json"), join(dir, "shelf-labels.json"));
+  }
   for (const f of ortFiles) copyFileSync(join(ort, f), join(dir, f));
 
   const files = {};
@@ -51,12 +65,26 @@ export function packageRelease({ version, modelDir = "models", dist = "dist", or
       file: "model.onnx",
       labels: "labels.json",
       name: info.name,
-      dataset: info.dataset,
+      dataset: shelfInfo ? `${info.dataset} + ${shelfInfo.dataset}` : info.dataset,
       classes: info.classes,
       imgsz: info.imgsz,
       ...DEFAULTS,
       sha256: files["model.onnx"],
     },
+    ...(shelfInfo
+      ? {
+          shelfModel: {
+            file: "shelf-model.onnx",
+            labels: "shelf-labels.json",
+            name: shelfInfo.name,
+            dataset: shelfInfo.dataset,
+            classes: shelfInfo.classes,
+            imgsz: shelfInfo.imgsz,
+            ...DEFAULTS,
+            sha256: files["shelf-model.onnx"],
+          },
+        }
+      : {}),
     files,
   };
   writeFileSync(join(dir, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
@@ -67,12 +95,28 @@ export function packageRelease({ version, modelDir = "models", dist = "dist", or
   return { dir, manifest };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const { values } = parseArgs({
-    options: { version: { type: "string" }, "model-dir": { type: "string" }, dist: { type: "string" }, ort: { type: "string" }, out: { type: "string" } },
+    options: {
+      version: { type: "string" },
+      "model-dir": { type: "string" },
+      "shelf-model-dir": { type: "string" },
+      dist: { type: "string" },
+      ort: { type: "string" },
+      out: { type: "string" },
+    },
   });
+  const shelfModelDir = values["shelf-model-dir"]
+    ?? (!values["model-dir"] && existsSync(join("models/shelf", "model.onnx")) ? "models/shelf" : undefined);
   try {
-    const { dir, manifest } = packageRelease({ version: values.version, modelDir: values["model-dir"], dist: values.dist, ort: values.ort, out: values.out });
+    const { dir, manifest } = packageRelease({
+      version: values.version,
+      modelDir: values["model-dir"],
+      shelfModelDir,
+      dist: values.dist,
+      ort: values.ort,
+      out: values.out,
+    });
     console.log(`${dir}: ${Object.keys(manifest.files).length} files + manifest.json + SHA256SUMS`);
   } catch (e) {
     console.error(`package-release: ${e.message}`);
