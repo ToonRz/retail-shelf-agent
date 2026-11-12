@@ -43,7 +43,8 @@ function serve(dir: string, override: Record<string, string> = {}) {
   vi.stubGlobal("fetch", async (url: string) => {
     const name = url.split("/").pop()!;
     const body = override[name] ?? (() => { try { return readFileSync(join(dir, name)); } catch { return null; } })();
-    return body === null ? new Response("nope", { status: 404 }) : new Response(body);
+    if (body === null) return new Response("nope", { status: 404 });
+    return new Response(body, { headers: { "content-length": String(Buffer.byteLength(body)) } });
   });
 }
 
@@ -141,6 +142,18 @@ describe("load", () => {
     const seen: number[] = [];
     expect(await codeOf(load({ baseUrl: "/agent/v0.3.0/", expectedVersion: "v0.3.0", onProgress: (n) => seen.push(n) }))).toBe("backend_unavailable");
     expect(seen.at(-1)).toBe("fake-onnx-bytes".length + "fake-shelf-onnx".length);
+  });
+
+  it("reports one fixed total across both models so progress never goes backwards", async () => {
+    const { dir } = fakeRelease("v0.3.0", true);
+    serve(dir);
+    const seen: [number, number | null][] = [];
+    await codeOf(load({ baseUrl: "/agent/v0.3.0/", expectedVersion: "v0.3.0", onProgress: (n, t) => seen.push([n, t]) }));
+    const total = "fake-onnx-bytes".length + "fake-shelf-onnx".length;
+    expect(seen.length).toBeGreaterThan(1);
+    expect(seen.every(([, t]) => t === total)).toBe(true);
+    expect(seen.every(([n], i) => i === 0 || n > seen[i - 1][0])).toBe(true);
+    expect(seen.at(-1)).toEqual([total, total]);
   });
 
   it("sha256Hex matches node:crypto", async () => {
