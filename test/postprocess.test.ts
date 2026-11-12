@@ -1,6 +1,7 @@
 // A3: decode() with hand-made outputs.
 import { describe, expect, it } from "vitest";
-import { decode, iou } from "../src/postprocess";
+import { decode, iou, mergeBoxes, overlapRatio } from "../src/postprocess";
+import type { Box } from "../src/types";
 
 const C = 3;
 const OPTS = { conf: 0.25, iou: 0.7, maxDet: 300 };
@@ -72,5 +73,26 @@ describe("decode", () => {
 
   it("rejects an output that does not fit C", () => {
     expect(() => decode(new Float32Array(10), C, OPTS, META)).toThrow(/not \(4 \+ 3\)/);
+  });
+});
+
+describe("mergeBoxes (v0.1.0 110-class + v0.2.1 1-class shelf)", () => {
+  const b = (cls: string, classId: number, conf: number, xyxy: [number, number, number, number]): Box => ({ cls, classId, conf, xyxy });
+
+  it("keeps named product boxes, drops overlapping/contained shelf boxes, and keeps unrecognized shelf boxes as 'product'", () => {
+    const primary = [
+      b("pocky", 73, 0.95, [200, 180, 440, 470]),
+    ];
+    const shelf = [
+      b("product", 0, 0.75, [210, 185, 430, 468]), // overlaps pocky -> dropped
+      b("product", 0, 0.60, [10, 290, 90, 510]),   // another item not in 110 classes -> kept with classId 110
+      b("product", 0, 0.30, [330, 190, 430, 465]), // sub-box inside pocky (overlapRatio ~1) -> dropped
+    ];
+    expect(overlapRatio(primary[0].xyxy, shelf[2].xyxy)).toBeGreaterThan(0.9);
+    const merged = mergeBoxes(primary, shelf, 110);
+    expect(merged).toEqual([
+      b("pocky", 73, 0.95, [200, 180, 440, 470]),
+      b("product", 110, 0.60, [10, 290, 90, 510]),
+    ]);
   });
 });

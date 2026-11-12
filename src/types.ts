@@ -23,6 +23,7 @@ export interface Manifest {
   contract: string;                 // CONTRACT
   entry: string;                    // "shelf-agent.js"
   model: ModelInfo;
+  shelfModel?: ModelInfo;           // optional 1-class shelf model bundled in the same release
   files: Record<string, string>;    // every release file except manifest.json and SHA256SUMS -> sha256
 }
 

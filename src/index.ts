@@ -1,9 +1,10 @@
-import { createSession, detect, disposeSession } from "./detect";
+import { createSession, detect, disposeSession, type ShelfRunner } from "./detect";
 import { parseManifest, sha256Hex } from "./manifest";
-import { type Agent, AgentError, type LoadOptions } from "./types";
+import { type Agent, AgentError, type LoadOptions, type ModelInfo } from "./types";
 
 export * from "./types";
 export { parseManifest, sha256Hex } from "./manifest";
+export { mergeBoxes, overlapRatio } from "./postprocess";
 
 async function fetchOk(url: string): Promise<Response> {
   let res: Response;
@@ -39,6 +40,23 @@ async function fetchBytes(url: string, onProgress?: LoadOptions["onProgress"]): 
   return out;
 }
 
+async function fetchVerifiedModel(
+  base: string,
+  info: ModelInfo,
+  onProgress?: LoadOptions["onProgress"],
+): Promise<{ model: Uint8Array; labels: string[] }> {
+  const model = await fetchBytes(`${base}${info.file}`, onProgress);
+  const sha = await sha256Hex(model);
+  if (sha !== info.sha256) {
+    throw new AgentError("model_sha256_mismatch", `${info.file} sha256 ${sha} != manifest ${info.sha256}`);
+  }
+  const labels = (await (await fetchOk(`${base}${info.labels}`)).json()) as unknown;
+  if (!Array.isArray(labels) || labels.length !== info.classes || !labels.every((l) => typeof l === "string")) {
+    throw new AgentError("labels_mismatch", `${info.labels} must be ${info.classes} class names`);
+  }
+  return { model, labels: labels as string[] };
+}
+
 /** Load the pinned release from `baseUrl`. Throws AgentError on any mismatch. */
 export async function load(opts: LoadOptions): Promise<Agent> {
   const base = opts.baseUrl.endsWith("/") ? opts.baseUrl : `${opts.baseUrl}/`;
@@ -51,21 +69,33 @@ export async function load(opts: LoadOptions): Promise<Agent> {
   }
   const manifest = parseManifest(raw, opts.expectedVersion);
 
-  const model = await fetchBytes(`${base}${manifest.model.file}`, opts.onProgress);
-  const sha = await sha256Hex(model);
-  if (sha !== manifest.model.sha256) {
-    throw new AgentError("model_sha256_mismatch", `${manifest.model.file} sha256 ${sha} != manifest ${manifest.model.sha256}`);
-  }
-  const labels = (await (await fetchOk(`${base}${manifest.model.labels}`)).json()) as unknown;
-  if (!Array.isArray(labels) || labels.length !== manifest.model.classes || !labels.every((l) => typeof l === "string")) {
-    throw new AgentError("labels_mismatch", `${manifest.model.labels} must be ${manifest.model.classes} class names`);
-  }
+  const primary = await fetchVerifiedModel(base, manifest.model, opts.onProgress);
+  const shelfLoaded = manifest.shelfModel
+    ? await fetchVerifiedModel(
+        base,
+        manifest.shelfModel,
+        opts.onProgress ? (n, t) => opts.onProgress!(primary.model.length + n, t ? primary.model.length + t : null) : undefined,
+      )
+    : null;
 
-  const session = await createSession(model, base, opts.backend ?? "webgpu");
+  const session = await createSession(primary.model, base, opts.backend ?? "webgpu");
+  let shelf: ShelfRunner | undefined;
+  if (shelfLoaded && manifest.shelfModel) {
+    try {
+      const shelfSession = await createSession(shelfLoaded.model, base, session.backend);
+      shelf = { session: shelfSession, labels: shelfLoaded.labels, model: manifest.shelfModel };
+    } catch (e) {
+      await disposeSession(session);
+      throw e;
+    }
+  }
   return {
     manifest,
     backend: session.backend,
-    detect: (image, o) => detect(session, image, labels as string[], manifest, o),
-    dispose: () => disposeSession(session),
+    detect: (image, o) => detect(session, image, primary.labels, manifest, o, shelf),
+    dispose: async () => {
+      await disposeSession(session);
+      if (shelf) await disposeSession(shelf.session);
+    },
   };
 }

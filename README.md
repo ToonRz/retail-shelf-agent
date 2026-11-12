@@ -8,6 +8,7 @@
 |---|---|---|---|
 | `v0.1.x` | sell-products v3, 110 คลาส (`model.lock.json`) | `agent.version` | หน้าตรวจจับ |
 | `v0.2.x` | shelf 1 คลาส `product`, เทรนบน SKU-110K (`model.shelf.lock.json`) | `agent-shelf.version` | หน้าเฝ้าชั้นวาง (แจ้งเตือนของหมดราย slot) |
+| `v0.3.x` | รวมทั้ง 2 โมเดล (`model.lock.json` + `model.shelf.lock.json`) · ถ้าระบุชื่อได้ด้วย 110 คลาสใช้ชื่อสินค้านั้น ถ้าไม่รู้จักแต่ shelf model เจอให้เป็น `product` | `agent.version` | ใช้ร่วมกันได้ทั้งหน้าตรวจจับและหน้าเฝ้าชั้นวาง |
 
 - Spec: [retail-shelf-detection/docs/agent-connection/SPEC.md](https://github.com/ToonRz/retail-shelf-detection/blob/main/docs/agent-connection/SPEC.md)
 - งานที่เหลือและเจ้าของงาน: [TASKS.md](https://github.com/ToonRz/retail-shelf-detection/blob/main/docs/agent-connection/TASKS.md)
