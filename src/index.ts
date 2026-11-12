@@ -17,10 +17,9 @@ async function fetchOk(url: string): Promise<Response> {
   return res;
 }
 
-async function fetchBytes(url: string, onProgress?: LoadOptions["onProgress"]): Promise<Uint8Array> {
-  const res = await fetchOk(url);
-  const len = Number(res.headers.get("content-length")) || null;
-  if (!res.body || !onProgress) return new Uint8Array(await res.arrayBuffer());
+/** Read a response body, calling onChunk(bytes) for every chunk received. */
+async function readBytes(res: Response, onChunk?: (bytes: number) => void): Promise<Uint8Array> {
+  if (!res.body || !onChunk) return new Uint8Array(await res.arrayBuffer());
   const reader = res.body.getReader();
   const chunks: Uint8Array[] = [];
   let loaded = 0;
@@ -29,7 +28,7 @@ async function fetchBytes(url: string, onProgress?: LoadOptions["onProgress"]): 
     if (done) break;
     chunks.push(value);
     loaded += value.length;
-    onProgress(loaded, len);
+    onChunk(value.length);
   }
   const out = new Uint8Array(loaded);
   let off = 0;
@@ -40,12 +39,7 @@ async function fetchBytes(url: string, onProgress?: LoadOptions["onProgress"]): 
   return out;
 }
 
-async function fetchVerifiedModel(
-  base: string,
-  info: ModelInfo,
-  onProgress?: LoadOptions["onProgress"],
-): Promise<{ model: Uint8Array; labels: string[] }> {
-  const model = await fetchBytes(`${base}${info.file}`, onProgress);
+async function verifyModel(base: string, info: ModelInfo, model: Uint8Array): Promise<{ model: Uint8Array; labels: string[] }> {
   const sha = await sha256Hex(model);
   if (sha !== info.sha256) {
     throw new AgentError("model_sha256_mismatch", `${info.file} sha256 ${sha} != manifest ${info.sha256}`);
@@ -69,13 +63,22 @@ export async function load(opts: LoadOptions): Promise<Agent> {
   }
   const manifest = parseManifest(raw, opts.expectedVersion);
 
-  const primary = await fetchVerifiedModel(base, manifest.model, opts.onProgress);
+  // Open every model download first so onProgress reports one total (sum of the Content-Lengths)
+  // that never changes mid-load, then read them in order (primary first, as before).
+  const infos = manifest.shelfModel ? [manifest.model, manifest.shelfModel] : [manifest.model];
+  const responses = await Promise.all(infos.map((info) => fetchOk(`${base}${info.file}`)));
+  const lens = responses.map((r) => Number(r.headers.get("content-length")) || 0);
+  const total = lens.every((n) => n > 0) ? lens.reduce((a, b) => a + b, 0) : null;
+  let loaded = 0;
+  const onChunk = opts.onProgress
+    ? (bytes: number) => {
+        loaded += bytes;
+        opts.onProgress!(loaded, total);
+      }
+    : undefined;
+  const primary = await verifyModel(base, manifest.model, await readBytes(responses[0], onChunk));
   const shelfLoaded = manifest.shelfModel
-    ? await fetchVerifiedModel(
-        base,
-        manifest.shelfModel,
-        opts.onProgress ? (n, t) => opts.onProgress!(primary.model.length + n, t ? primary.model.length + t : null) : undefined,
-      )
+    ? await verifyModel(base, manifest.shelfModel, await readBytes(responses[1], onChunk))
     : null;
 
   const session = await createSession(primary.model, base, opts.backend ?? "webgpu");

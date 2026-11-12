@@ -8,7 +8,7 @@
 |---|---|---|---|
 | `v0.1.x` | sell-products v3, 110 คลาส (`model.lock.json`) | `agent.version` | หน้าตรวจจับ |
 | `v0.2.x` | shelf 1 คลาส `product`, เทรนบน SKU-110K (`model.shelf.lock.json`) | `agent-shelf.version` | หน้าเฝ้าชั้นวาง (แจ้งเตือนของหมดราย slot) |
-| `v0.3.x` | รวมทั้ง 2 โมเดล (`model.lock.json` + `model.shelf.lock.json`) · ถ้าระบุชื่อได้ด้วย 110 คลาสใช้ชื่อสินค้านั้น ถ้าไม่รู้จักแต่ shelf model เจอให้เป็น `product` | `agent.version` | ใช้ร่วมกันได้ทั้งหน้าตรวจจับและหน้าเฝ้าชั้นวาง |
+| `v0.3.x` | รวมทั้ง 2 โมเดล (`model.lock.json` + `model.shelf.lock.json`) · ถ้าระบุชื่อได้ด้วย 110 คลาสใช้ชื่อสินค้านั้น ถ้าไม่รู้จักแต่ shelf model เจอให้เป็น `product` | `agent.version` | หน้าตรวจจับ (รัน 2 โมเดลต่อรูป จึงช้ากว่า v0.1.x ราว 2 เท่า) · หน้าเฝ้าชั้นวางยังใช้ `v0.2.x` เพราะนับแค่ว่ามีกล่องหรือไม่ |
 
 - Spec: [retail-shelf-detection/docs/agent-connection/SPEC.md](https://github.com/ToonRz/retail-shelf-detection/blob/main/docs/agent-connection/SPEC.md)
 - งานที่เหลือและเจ้าของงาน: [TASKS.md](https://github.com/ToonRz/retail-shelf-detection/blob/main/docs/agent-connection/TASKS.md)
@@ -39,6 +39,7 @@ sha256 ของ model ไม่ตรง manifest หรือ labels ไม่
 | shelf model 1 คลาส + fixture `shelf-v1` | ✅ (2026-11-12): release `model-shelf-1class-v1` · output `[1,5,8400]` · `test/fixtures/shelf-v1/` ใช้รูป sell-v3 ชุดเดิม (CC BY, เซฟใหม่เป็น JPEG 4:4:4) + 2 เฟรมจากวิดีโอชั้นวางจำลอง เพราะห้ามแจกรูป SKU-110K · release [v0.2.0](https://github.com/ToonRz/retail-shelf-agent/releases/tag/v0.2.0) |
 | release `v0.2.0` (shelf model) | ✅ `release.yml` ใช้ `models/shelf` เมื่อ tag เป็น `v0.2.*` |
 | shelf model v2 (เทรนครบ 30 epoch บน Colab) + release `v0.2.1` | ✅ (2026-11-12): release `model-shelf-1class-v2` · SKU-110K test tiles mAP50 0.927 (v1: 0.842) · fixture `shelf-v1` สร้างใหม่จาก model นี้ |
+| สาย `v0.3.x` รวม 2 โมเดล (`manifest.shelfModel`, PR #1) | ✅ (2026-11-12): release [v0.3.0](https://github.com/ToonRz/retail-shelf-agent/releases/tag/v0.3.0) · `v0.3.1` แก้ `onProgress` ให้ total เป็นผลรวมของทั้ง 2 โมเดลตั้งแต่แรก (v0.3.0 แถบโหลดถึง 100% แล้วตกกลับ ~50%) · ทดสอบใน Chromium (WASM) บนรูปตัวอย่างของเว็บ: ชื่อสินค้าเท่า v0.1.0 ทุกรูป |
 
 ## Dev
 
