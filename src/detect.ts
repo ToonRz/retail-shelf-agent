@@ -96,6 +96,12 @@ export async function runRGBA(
   opts: DetectOptions = {},
   shelf?: ShelfRunner,
 ) {
+  if (shelf && opts.shelfOnly) {
+    // The shelf model's own boxes (what a v0.2.x release returns), with the combined classId of "product".
+    const shelfLb = letterbox(rgba.data, rgba.width, rgba.height, shelf.model.imgsz);
+    const shelfBoxes = await runLetterbox(shelf.session, shelfLb, rgba.width, rgba.height, shelf.labels, shelf.model, opts);
+    return shelfBoxes.map((b) => ({ ...b, classId: labels.length + b.classId }));
+  }
   const lb = letterbox(rgba.data, rgba.width, rgba.height, model.imgsz);
   const primary = await runLetterbox(session, lb, rgba.width, rgba.height, labels, model, opts);
   if (!shelf) return primary;
@@ -117,7 +123,7 @@ export async function detect(
   const boxes = await runRGBA(session, rgba, labels, manifest.model, opts, shelf);
   return {
     version: manifest.version,
-    model_sha256: manifest.model.sha256,
+    model_sha256: shelf && opts.shelfOnly && manifest.shelfModel ? manifest.shelfModel.sha256 : manifest.model.sha256,
     backend: session.backend,
     latency_ms: Math.round((performance.now() - t0) * 10) / 10,
     width: rgba.width,

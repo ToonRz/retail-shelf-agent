@@ -8,7 +8,7 @@
 |---|---|---|---|
 | `v0.1.x` | sell-products v3, 110 คลาส (`model.lock.json`) | `agent.version` | หน้าตรวจจับ |
 | `v0.2.x` | shelf 1 คลาส `product`, เทรนบน SKU-110K (`model.shelf.lock.json`) | `agent-shelf.version` | หน้าเฝ้าชั้นวาง (แจ้งเตือนของหมดราย slot) |
-| `v0.3.x` | รวมทั้ง 2 โมเดล (`model.lock.json` + `model.shelf.lock.json`) · ถ้าระบุชื่อได้ด้วย 110 คลาสใช้ชื่อสินค้านั้น ถ้าไม่รู้จักแต่ shelf model เจอให้เป็น `product` | `agent.version` | หน้าตรวจจับ (รัน 2 โมเดลต่อรูป จึงช้ากว่า v0.1.x ราว 2 เท่า) · หน้าเฝ้าชั้นวางยังใช้ `v0.2.x` เพราะนับแค่ว่ามีกล่องหรือไม่ |
+| `v0.3.x` | รวมทั้ง 2 โมเดล (`model.lock.json` + `model.shelf.lock.json`) · ถ้าระบุชื่อได้ด้วย 110 คลาสใช้ชื่อสินค้านั้น ถ้าไม่รู้จักแต่ shelf model เจอให้เป็น `product` | `agent.version` + `agent-shelf.version` | หน้าตรวจจับ (รัน 2 โมเดลต่อรูป จึงช้ากว่า v0.1.x ราว 2 เท่า) · หน้าเฝ้าชั้นวาง (ตั้งแต่ `v0.3.2` ส่ง `detect(img, { shelfOnly: true })` รันแค่ shelf model จึงเร็วเท่า v0.2.x) |
 
 - Spec: [retail-shelf-detection/docs/agent-connection/SPEC.md](https://github.com/ToonRz/retail-shelf-detection/blob/main/docs/agent-connection/SPEC.md)
 - งานที่เหลือและเจ้าของงาน: [TASKS.md](https://github.com/ToonRz/retail-shelf-detection/blob/main/docs/agent-connection/TASKS.md)
@@ -40,6 +40,7 @@ sha256 ของ model ไม่ตรง manifest หรือ labels ไม่
 | release `v0.2.0` (shelf model) | ✅ `release.yml` ใช้ `models/shelf` เมื่อ tag เป็น `v0.2.*` |
 | shelf model v2 (เทรนครบ 30 epoch บน Colab) + release `v0.2.1` | ✅ (2026-11-12): release `model-shelf-1class-v2` · SKU-110K test tiles mAP50 0.927 (v1: 0.842) · fixture `shelf-v1` สร้างใหม่จาก model นี้ |
 | สาย `v0.3.x` รวม 2 โมเดล (`manifest.shelfModel`, PR #1) | ✅ (2026-11-12): release [v0.3.0](https://github.com/ToonRz/retail-shelf-agent/releases/tag/v0.3.0) · `v0.3.1` แก้ `onProgress` ให้ total เป็นผลรวมของทั้ง 2 โมเดลตั้งแต่แรก (v0.3.0 แถบโหลดถึง 100% แล้วตกกลับ ~50%) · ทดสอบใน Chromium (WASM) บนรูปตัวอย่างของเว็บ: ชื่อสินค้าเท่า v0.1.0 ทุกรูป |
+| `v0.3.2`: `DetectOptions.shelfOnly` | ✅ (2026-11-13): รันแค่ shelf model ได้กล่องเดียวกับ `v0.2.1` (classId 110) · Chromium (WASM) รูปตัวอย่างของเว็บ ~340 ms ต่อรูป เทียบกับ ~705 ms ตอนรัน 2 โมเดล · release ที่ไม่มี `shelfModel` ไม่สนตัวเลือกนี้ · contract ยังเป็น `shelf-agent-js/1` |
 
 ## Dev
 

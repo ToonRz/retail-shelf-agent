@@ -129,4 +129,17 @@ describe("combined detection (v0.1.0 110-class + v0.2.1 1-class shelf)", () => {
     const boxes2 = await runRGBA(primarySession, img2, primaryLabels, cfg, {}, shelf);
     expect(boxes2.map((b) => [b.cls, b.classId])).toEqual([["product", 110]]);
   }, 60_000);
+
+  it("shelfOnly runs just the shelf model: its boxes unchanged (as in v0.2.x) except classId 110", async () => {
+    const cfg = { imgsz: 640, conf: 0.25, iou: 0.7, max_det: 300 };
+    const shelf = { session: shelfSession, labels: shelfLabels, model: cfg };
+    const img1 = jpeg.decode(readFileSync("test/fixtures/shelf-v1/IMG_5895_JPG.rf.0774158c96bfb7f9e10ee8acd93a9148.jpg"), { useTArray: true, formatAsRGBA: true });
+    const only = await runRGBA(primarySession, img1, primaryLabels, cfg, { shelfOnly: true }, shelf);
+    const direct = await runRGBA(shelfSession, img1, shelfLabels, cfg);
+    expect(only.length).toBeGreaterThan(0);
+    expect(only.map((b) => [b.cls, b.classId])).toEqual(direct.map(() => ["product", 110]));
+    expect(only.map((b) => b.xyxy)).toEqual(direct.map((b) => b.xyxy));
+    // without a shelf model the option is ignored
+    expect(await runRGBA(primarySession, img1, primaryLabels, cfg, { shelfOnly: true })).toEqual(await runRGBA(primarySession, img1, primaryLabels, cfg));
+  }, 60_000);
 });
