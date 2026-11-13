@@ -45,6 +45,8 @@ export interface DetectOptions {
   conf?: number;
   iou?: number;
   maxDet?: number;
+  shelfOnly?: boolean;              // v0.3.2+: run only the 1-class shelf model (boxes "product", classId = model.classes),
+                                    // about half the time of both models. Ignored when the release has no shelfModel.
 }
 
 export interface DetectResult {
