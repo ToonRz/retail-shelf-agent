@@ -10,16 +10,19 @@
 | `v0.2.x` | shelf 1 คลาส `product`, เทรนบน SKU-110K (`model.shelf.lock.json`) | `agent-shelf.version` | หน้าเฝ้าชั้นวาง (แจ้งเตือนของหมดราย slot) |
 | `v0.3.x` | รวมทั้ง 2 โมเดล (`model.lock.json` + `model.shelf.lock.json`) · ถ้าระบุชื่อได้ด้วย 110 คลาสใช้ชื่อสินค้านั้น ถ้าไม่รู้จักแต่ shelf model เจอให้เป็น `product` | `agent.version` + `agent-shelf.version` | หน้าตรวจจับ (รัน 2 โมเดลต่อรูป จึงช้ากว่า v0.1.x ราว 2 เท่า) · หน้าเฝ้าชั้นวาง (ตั้งแต่ `v0.3.2` ส่ง `detect(img, { shelfOnly: true })` รันแค่ shelf model จึงเร็วเท่า v0.2.x · ปุ่ม "หาช่องอัตโนมัติ" ของเว็บเรียก `detect` แบบปกติ (ทั้งสอง model) เพื่อเอาชื่อสินค้ามาแบ่งช่อง กล่อง `classId` ≥ `manifest.model.classes` คือของที่ model 110 คลาสไม่รู้จัก) |
 
+release ล่าสุด: [`v0.3.2`](https://github.com/ToonRz/retail-shelf-agent/releases/tag/v0.3.2) (~56 MB) · เว็บ pin `v0.3.2` ทั้ง `agent.version` และ `agent-shelf.version`
+
 - Spec: [retail-shelf-detection/docs/agent-connection/SPEC.md](https://github.com/ToonRz/retail-shelf-detection/blob/main/docs/agent-connection/SPEC.md)
-- งานที่เหลือและเจ้าของงาน: [TASKS.md](https://github.com/ToonRz/retail-shelf-detection/blob/main/docs/agent-connection/TASKS.md)
-- Model มาจาก [retail-shelf-detection](https://github.com/ToonRz/retail-shelf-detection) (`src/export_agent_assets.py`)
+- Model มาจาก [retail-shelf-detection](https://github.com/ToonRz/retail-shelf-detection): 110 คลาสจาก `src/export_agent_assets.py`, shelf model จาก `notebooks/train_shelf_1class.ipynb`
 
 ## API (contract `shelf-agent-js/1`)
 
 ```js
-import { load } from "/agent/v0.1.0/shelf-agent.js";
-const agent = await load({ baseUrl: "/agent/v0.1.0/", expectedVersion: "v0.1.0", backend: "webgpu" });
-const r = await agent.detect(imageBitmap);   // { boxes: [{ cls, classId, conf, xyxy }], latency_ms, ... }
+import { load } from "/agent/v0.3.2/shelf-agent.js";
+const agent = await load({ baseUrl: "/agent/v0.3.2/", expectedVersion: "v0.3.2", backend: "webgpu",
+                           onProgress: (loaded, total) => {} });
+const r = await agent.detect(imageBitmap);   // { boxes: [{ cls, classId, conf, xyxy }], latency_ms, ... } ทั้งสอง model
+const s = await agent.detect(imageBitmap, { shelfOnly: true });   // shelf model อย่างเดียว: กล่อง "product" (classId 110)
 ```
 
 Types อยู่ใน [`src/types.ts`](src/types.ts) · `load()` ปฏิเสธ (throw `AgentError`) ถ้าเวอร์ชันไม่ตรง pin, contract ไม่ตรง,
@@ -32,15 +35,16 @@ sha256 ของ model ไม่ตรง manifest หรือ labels ไม่
 | types, `parseManifest`, `load()` (manifest + sha256 + labels) | ✅ มี test |
 | `scripts/package-release.mjs` (โฟลเดอร์ release + `manifest.json` + `SHA256SUMS`) | ✅ มี test |
 | `scripts/fetch-model.mjs` + `model.lock.json` | ✅ ชี้ release `model-yolov8n-v3` (model จริง 110 คลาส) |
-| `createSession` (WebGPU → WASM) / `detect` (`src/detect.ts`, `src/preprocess.ts`, `src/postprocess.ts`) | ✅ A1–A4 · unit test letterbox เทียบ Python/cv2, decode/NMS, parity บน `sell-v3` + `coco-dev` · ทดสอบใน Chromium แล้วทั้ง WebGPU และ WASM |
-| release workflow ตอน push tag (`.github/workflows/release.yml`) | ✅ C1 |
-| model จริง (sell-products v3, 110 คลาส) + fixture `sell-v3` | ✅ T2 (2026-11-10): release `model-yolov8n-v3` · output `[1,114,8400]` · `test/fixtures/sell-v3/` 16 รูป (15 + crop) สร้างจาก onnx ไฟล์เดียวกัน |
+| `createSession` (WebGPU → WASM) / `detect` (`src/detect.ts`, `src/preprocess.ts`, `src/postprocess.ts`) | ✅ unit test letterbox เทียบ Python/cv2, decode/NMS, parity บน `sell-v3` + `coco-dev` · ทดสอบใน Chromium แล้วทั้ง WebGPU และ WASM |
+| release workflow ตอน push tag (`.github/workflows/release.yml`) | ✅ |
+| model จริง (sell-products v3, 110 คลาส) + fixture `sell-v3` | ✅ (2026-11-10): release `model-yolov8n-v3` · output `[1,114,8400]` · `test/fixtures/sell-v3/` 16 รูป (15 + crop) สร้างจาก onnx ไฟล์เดียวกัน |
 | release แรก `v0.1.0` | ✅ [v0.1.0](https://github.com/ToonRz/retail-shelf-agent/releases/tag/v0.1.0) (2026-11-10) · เว็บ pin แล้ว |
 | shelf model 1 คลาส + fixture `shelf-v1` | ✅ (2026-11-12): release `model-shelf-1class-v1` · output `[1,5,8400]` · `test/fixtures/shelf-v1/` ใช้รูป sell-v3 ชุดเดิม (CC BY, เซฟใหม่เป็น JPEG 4:4:4) + 2 เฟรมจากวิดีโอชั้นวางจำลอง เพราะห้ามแจกรูป SKU-110K · release [v0.2.0](https://github.com/ToonRz/retail-shelf-agent/releases/tag/v0.2.0) |
 | release `v0.2.0` (shelf model) | ✅ `release.yml` ใช้ `models/shelf` เมื่อ tag เป็น `v0.2.*` |
 | shelf model v2 (เทรนครบ 30 epoch บน Colab) + release `v0.2.1` | ✅ (2026-11-12): release `model-shelf-1class-v2` · SKU-110K test tiles mAP50 0.927 (v1: 0.842) · fixture `shelf-v1` สร้างใหม่จาก model นี้ |
 | สาย `v0.3.x` รวม 2 โมเดล (`manifest.shelfModel`, PR #1) | ✅ (2026-11-12): release [v0.3.0](https://github.com/ToonRz/retail-shelf-agent/releases/tag/v0.3.0) · `v0.3.1` แก้ `onProgress` ให้ total เป็นผลรวมของทั้ง 2 โมเดลตั้งแต่แรก (v0.3.0 แถบโหลดถึง 100% แล้วตกกลับ ~50%) · ทดสอบใน Chromium (WASM) บนรูปตัวอย่างของเว็บ: ชื่อสินค้าเท่า v0.1.0 ทุกรูป |
 | `v0.3.2`: `DetectOptions.shelfOnly` | ✅ (2026-11-13): รันแค่ shelf model ได้กล่องเดียวกับ `v0.2.1` (classId 110) · Chromium (WASM) รูปตัวอย่างของเว็บ ~340 ms ต่อรูป เทียบกับ ~705 ms ตอนรัน 2 โมเดล · release ที่ไม่มี `shelfModel` ไม่สนตัวเลือกนี้ · contract ยังเป็น `shelf-agent-js/1` |
+| ทดสอบ release ใน browser จริงใน CI | ⬜ ยังไม่มี · CI รัน parity บน Node (onnxruntime-web แบบ WASM) ส่วน Chromium ทดสอบด้วยมือ · ยังไม่ได้ลอง Firefox / Safari บน Mac (Safari บน iPhone 17 Pro ใช้ได้ทั้ง WebGPU และ WASM) |
 
 ## Dev
 
@@ -56,7 +60,7 @@ npm run package -- --version v0.0.1   # release/v0.0.1/ (ต้อง build + fe
 ```
 
 ออก release: `git tag vX.Y.Z && git push origin vX.Y.Z` (หรือ Actions → release → Run workflow แล้วใส่เวอร์ชัน) → `release.yml` รัน typecheck / test / build / package แล้วสร้าง GitHub Release (ไฟล์ flat + `manifest.json` + `SHA256SUMS`)
-release มีแค่ ort ชุด `ort-wasm-simd-threaded.jsep.*` (ตัวเดียวรันได้ทั้ง WebGPU และ WASM) รวมทั้ง release ~43 MB
+release มีแค่ ort ชุด `ort-wasm-simd-threaded.jsep.*` (ตัวเดียวรันได้ทั้ง WebGPU และ WASM) รวมทั้ง release ~43 MB (`v0.1.x`) หรือ ~56 MB (`v0.3.x` ที่มีสอง model)
 
 Parity (`test/parity.test.ts`, SPEC §6.4): รัน onnx ด้วย onnxruntime-web (wasm) ผ่าน letterbox + decode ตัวเดียวกับใน browser แล้วเทียบกับ `expected.json` ที่ Ultralytics ทายด้วย **onnx ไฟล์เดียวกัน**
 - `test/fixtures/sell-v3/` ↔ `model.lock.json` (model จริง)
@@ -68,5 +72,5 @@ Parity (`test/parity.test.ts`, SPEC §6.4): รัน onnx ด้วย onnxrunt
 Model ได้มาจาก Ultralytics YOLOv8 (AGPL-3.0) และ dataset [Sell Products – O2O Minimart](https://universe.roboflow.com/o2o-minimart/sell-products) (CC BY 4.0) ซึ่งรูปใน `test/fixtures/sell-v3/` มาจาก test split ของ dataset นี้
 รูป `bus.jpg` ใน fixture มาจาก Ultralytics assets
 
-Shelf model (`v0.2.x`) เทรนบน [SKU-110K](https://github.com/eg4000/SKU110K_CVPR19) ซึ่ง licence ให้ใช้ **เพื่อการศึกษาและไม่ใช่เชิงพาณิชย์เท่านั้น**
+Shelf model (`v0.2.x` และ `shelfModel` ของ `v0.3.x`) เทรนบน [SKU-110K](https://github.com/eg4000/SKU110K_CVPR19) ซึ่ง licence ให้ใช้ **เพื่อการศึกษาและไม่ใช่เชิงพาณิชย์เท่านั้น**
 และห้ามแจกจ่ายหรือดัดแปลงรูป จึงไม่มีรูป SKU-110K ใน repo นี้ · ถ้าจะใช้ model นี้เชิงพาณิชย์ต้องขออนุญาต Trax ก่อน หรือเทรนใหม่ด้วยรูปของตัวเอง
